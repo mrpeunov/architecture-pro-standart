@@ -1,0 +1,41 @@
+@startuml
+!include <C4/C4_Component.puml>
+
+title "Передача ставок в колл-центр"
+
+
+Person(deposit_manager, "Менеджер депозитного бэк-офиса")
+Person(credit_manager, "Менеджер кредитного колл-центра")
+Person(call_center_manager, "Менеджер колл-центра")
+Person(partner_call_center_manager, "Менеджер партнёрского колл-центра")
+
+System(ui, "Фронт бэк офиса", "UI Система, которая объединяет работу c депозитами, кредитами и ставками")
+System(credit, "Сервис работы с кредитами")
+System(deposit, "Сервис работы с депозитами")
+System(interest_rate, "Сервис работы со ставками")
+System(email, "Email")
+System(abc, "АБС", "Автоматизированная банковская система")
+System(call_center, "Система колл-центра")
+System(partner_call_center, "Система партнёрского колл-центра")
+System_Ext(center_bank, "API центрального банка")
+
+Rel(deposit_manager, ui, "Обрабатывает заявки на депозиты, смотрит ставки")
+Rel(credit_manager, ui, "Обрабатывает заявки на депозиты, смотрит ставки")
+Rel(call_center_manager, ui, "Cмотрит ставки")
+
+Rel(ui, deposit, "Работа с депозитами")
+Rel(ui, credit, "Работа с кредитами")
+Rel(ui, interest_rate, "Получение ставок")
+
+Rel(deposit, abc, "Походы как через Anti Corruption Layer")
+Rel(credit, abc, "Походы как через Anti Corruption Layer")
+Rel(interest_rate, credit, "Получение данных для формирования ставки")
+Rel(interest_rate, deposit, "Получение данных для формирования ставки")
+Rel(interest_rate, center_bank, "Получает ключевую ставку")
+
+Rel(interest_rate, email, "отправка ставок по крону")
+Rel(email, partner_call_center_manager, "получает ставки")
+Rel(partner_call_center_manager, partner_call_center, "обрабатывает заявки")
+Rel(call_center_manager, call_center, "обрабатывает заявки")
+
+@enduml

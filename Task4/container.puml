@@ -1,0 +1,62 @@
+@startuml C4_Container
+!include <C4/C4_Container.puml>
+
+title "Передача ставок в колл-центр"
+
+Person(deposit_manager, "Менеджер депозитного бэк-офиса")
+Person(credit_manager, "Менеджер кредитного колл-центра")
+Person(call_center_manager, "Менеджер колл-центра")
+Person(partner_call_center_manager, "Менеджер партнёрского колл-центра")
+
+
+System_Boundary(ui, "Микросервисы банка Стандарт") {
+ Container(back_office_ui, "Frontend", "React", "UI админка бэк офиса")
+}
+
+System_Boundary(deposit, "Сервис депозитов") {
+ Container(deposit_service_api, "Backend Deposit Service", "Java Spring Boot", "Бизнес-логика обработки заявок")
+ ContainerDb(deposit_service_db, "Deposit Service DB", "Postgres", "БД сервиса депозитов")
+ Rel(deposit_service_api, deposit_service_db, "Сохраняет и получает данные", "JDBC")
+}
+
+System_Boundary(credit, "Сервис кредитов") {
+ Container(credit_service_api, "Backend Credit Service", "Java Spring Boot", "Бизнес-логика обработки заявок")
+ ContainerDb(credit_service_db, "Deposit Service DB", "Postgres", "БД сервиса депозитов")
+ Rel(credit_service_api, credit_service_db, "Сохраняет и получает данные", "JDBC")
+}
+
+System_Boundary(interest_rate, "Сервис ставок") {
+ Container(interest_rate_service_api, "Backend Interest Rate Service", "Java Spring Boot", "Бизнес-логика работы со ставками")
+ Container(interest_rate_service_cron, "Interest Rate Cron", "Java Spring Boot", "Обработка")
+ ContainerDb(interest_rate_service_db, "Backend Interest DB", "Postgres", "БД сервиса депозитов")
+ Rel(interest_rate_service_api, interest_rate_service_db, "Сохраняет и получает данные", "JDBC")
+ Rel(interest_rate_service_cron, interest_rate_service_db, "Сохраняет и получает данные", "JDBC")
+}
+
+
+System_Ext(email, "Email")
+System_Ext(call_center, "Система колл-центра", "React, Java, Postgres")
+System_Ext(partner_call_center, "Система партнёрского колл-центра")
+System_Ext(center_bank, "API центрального банка")
+System_Ext(abs, "АБС", "Oracle, PL/SQL")
+
+Rel(deposit_manager, back_office_ui, "Обрабатывает заявки на депозиты, смотрит ставки")
+Rel(credit_manager, back_office_ui, "Обрабатывает заявки на депозиты, смотрит ставки")
+Rel(call_center_manager, back_office_ui, "Смотрит ставки")
+
+Rel(back_office_ui, deposit_service_api, "Работа с депозитами")
+Rel(back_office_ui, credit_service_api, "Работа с кредитами")
+Rel(back_office_ui, interest_rate_service_api, "Получение ставок")
+
+Rel(call_center_manager, call_center, "Обработка тикетов")
+Rel(deposit_service_api, abs, "Походы как через Anti Corruption Layer")
+Rel(credit_service_api, abs, "Походы как через Anti Corruption Layer")
+Rel(interest_rate_service_api, center_bank, "Получение ключевой ставки")
+
+Rel(interest_rate_service_api, deposit_service_api, "Получение данных для формирования ставки")
+Rel(interest_rate_service_api, credit_service_api, "Получение данных для формирования ставки")
+
+Rel(interest_rate_service_cron, email, "Отправка актуальных ставок")
+Rel(email, partner_call_center_manager, "Получение актуальных ставок")
+Rel(partner_call_center_manager, partner_call_center, "Обрабатывает заявки")
+@enduml

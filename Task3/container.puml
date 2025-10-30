@@ -1,7 +1,7 @@
 @startuml C4_Container
 !include <C4/C4_Container.puml>
 
-title "Открытие депозитов онлайн — Контейнеры"
+title "Открытие депозитов онлайн"
 
 Person(client, "Клиент интернет-банка")
 Person(back_office_manager, "Менеджер бэк-офиса")
