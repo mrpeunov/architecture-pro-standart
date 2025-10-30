@@ -1,0 +1,43 @@
+@startuml C4_Container
+!include <C4/C4_Container.puml>
+
+title "Открытие депозитов онлайн — Контейнеры"
+
+Person(client, "Клиент интернет-банка")
+Person(back_office_manager, "Менеджер бэк-офиса")
+Person(call_center_manager, "Менеджер колл-центра")
+
+System_Boundary(internet-bank, "Интернет-банк") {
+ Container(internet_bank_app, "UI интернет-банка", "ASP.NET MVC", "Монолит интернет-банка")
+}
+
+System_Boundary(site, "Сайт банка") {
+ Container(site_ui, "Web UI сайта", "PHP / React", "Подача заявок от новых клиентов")
+}
+
+System_Boundary(deposit_service, "Deposit Service") {
+ Container(deposit_service_api, "Backend Deposit Service", "Java Spring Boot", "Бизнес-логика обработки заявок")
+ Container(deposit_service_ui, "Frontend Deposit Service", "React", "UI админка")
+ ContainerDb(deposit_service_db, "Deposit Service DB", "Postgres", "БД сервиса депозитов")
+ Rel(deposit_service_api, deposit_service_db, "Сохраняет получает данные", "JDBC")
+ Rel(deposit_service_ui, deposit_service_api, "Получение заявок")
+}
+
+System_Ext(call_center, "Система колл-центра", "React, Java, Postgres")
+System_Ext(abs, "АБС", "Oracle, PL/SQL")
+System_Ext(sms, "СМС-шлюз")
+
+Rel(client, internet_bank_app, "Создаёт заявки", "HTTPS/TLS")
+Rel(client, site_ui, "Создаёт заявки", "HTTPS/TLS")
+
+Rel(internet_bank_app, deposit_service_api, "Передача заявок, запрос ставок", "HTTPS/REST")
+Rel(site_ui, deposit_service_api, "Передача заявок", "HTTPS/REST")
+
+Rel(back_office_manager, deposit_service_ui, "Обрабатывает заявки")
+
+Rel(abs, sms, "Отправка уведомлений", "HTTPS/REST")
+BiRel(deposit_service_api, call_center, "Создание тикета и обновление статуса", "HTTPS/REST (MVP), Kafka (Целевое)")
+
+Rel(call_center_manager, call_center, "Обработка тикетов")
+Rel(back_office_manager, abs, "Ручное создание заявок (MVP)")
+@enduml

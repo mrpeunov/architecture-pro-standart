@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component.puml>
+
+title Открытие депозитов онлайн (MVP)
+
+Person(client, "Клиент")
+Person(back_office_manager, "Менеджер бек-офиса")
+Person(call_center_manager, "Менеджер колл-центра")
+
+System(internet_bank, "Интернет-банк", "Оформление депозита для авторизованных клиентов")
+System(site, "Сайт", "Оформление депозита для новых клиентов")
+System(deposit_service, "Сервис работы с депозитами")
+System(abc, "АБС", "Автоматизированная банковская система")
+System_Ext(sms_gateway, "СМС-шлюз", "Отправка уведомлений клиентам")
+System(call_center, "Система колл-центра")
+
+Rel(client, internet_bank, "Отправляет заявку")
+Rel(client, site, "Отправляет заявку")
+Rel(internet_bank, deposit_service, "Создаёт заявку")
+Rel(site, deposit_service, "Создаёт заявку")
+Rel(deposit_service, back_office_manager, "Ручная обработка")
+Rel(deposit_service, call_center, "Создание тикета")
+Rel(call_center, call_center_manager, "Обработка заявки")
+Rel(call_center_manager, client, "Звонит")
+Rel(back_office_manager, abc, "Вносит заявки")
+Rel(abc, sms_gateway, "Отправляет СМС клиенту")
+
+@enduml
