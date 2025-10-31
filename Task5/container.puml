@@ -1,0 +1,51 @@
+@startuml C4_Container
+!include <C4/C4_Container.puml>
+
+title "Открытие кредитовов онлайн"
+
+Person(client, "Клиент интернет-банка")
+Person(back_office_manager, "Менеджер бэк-офиса", "Кредитный отдел")
+
+System_Boundary(internet-bank, "Интернет-банк") {
+ Container(internet_bank_app, "UI интернет-банка", "ASP.NET MVC", "Монолит интернет-банка")
+}
+
+System_Boundary(site, "Сайт банка") {
+ Container(site_ui, "Web UI сайта", "PHP / React", "Подача заявок от новых клиентов")
+}
+
+System_Boundary(credit_service, "credit Service") {
+ Container(credit_service_api, "Backend credit Service", "Java Spring Boot", "Бизнес-логика обработки заявок")
+ Container(credit_service_worker, "Credit Service Worker", "Java Spring Boot", "Ночной воркер для создания предодобренный кредитов")
+ ContainerDb(credit_service_db, "Credit Service DB", "Postgres", "БД сервиса кредитов")
+
+ Rel(credit_service_api, credit_service_db, "Сохраняет получает данные", "JDBC")
+ Rel(credit_service_worker, credit_service_db, "Сохраняет получает данные", "JDBC")
+}
+
+System_Ext(scoring, "Система кредитного скоринга")
+System_Ext(bureau_credit_story, "Бюро кредитных историй")
+System_Ext(credit_conveyor, "Кредитный конвейер", "BPM-системы Camunda, Oracle")
+System_Ext(abs, "АБС", "Oracle, PL/SQL")
+System_Ext(sms, "СМС-шлюз")
+
+Rel(client, internet_bank_app, "Создаёт заявки", "HTTPS/TLS")
+Rel(client, site_ui, "Создаёт заявки", "HTTPS/TLS")
+
+Rel(internet_bank_app, credit_service_api, "Передача заявок, запрос ставок", "HTTPS/REST")
+Rel(site_ui, credit_service_api, "Передача заявок", "HTTPS/REST")
+
+Rel(back_office_manager, credit_conveyor, "Обрабатывает заявки")
+
+Rel(credit_service_api, sms, "Отправка уведомлений", "HTTPS/REST")
+BiRel(credit_service_api, credit_conveyor, "Создание заявки")
+Rel(credit_service_api, abs, "Походы по паттернам Circuit Breaker и Anti Corruption Layer")
+
+Rel(credit_conveyor, scoring, "Оценка кредитоспособности заявки")
+Rel(scoring, abs, "Получение внутренних кредитных данных клиента")
+Rel(scoring, bureau_credit_story, "Получение внешних кредитных данных клиента")
+
+Rel(credit_service_worker, scoring, "Расчёт предодобренных кредитов")
+Rel(credit_service_worker, abs, "Получение данных по клиентам")
+
+@enduml
