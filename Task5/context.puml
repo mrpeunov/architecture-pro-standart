@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component.puml>
+
+title Открытие кредитов онлайн (MVP)
+
+Person(client, "Клиент")
+Person(back_office_manager, "Менеджер бек-офиса", "Кредитный отдел")
+
+System(internet_bank, "Интернет-банк", "Оформление кредита для авторизованных клиентов")
+System(site, "Сайт", "Оформление кредита для новых клиентов")
+System(credit_service, "Сервис работы с кредитами")
+System_Ext(abc, "АБС", "Автоматизированная банковская система")
+System_Ext(credit_conveyor, "Кредитный конвейер")
+System_Ext(sms_gateway, "СМС-шлюз", "Отправка уведомлений клиентам")
+System_Ext(scoring, "Система кредитного скоринга")
+System_Ext(bureau_credit_story, "Бюро кредитных историй")
+
+Rel(client, internet_bank, "Отправляет заявку")
+Rel(client, site, "Отправляет заявку")
+Rel(internet_bank, credit_service, "Создаёт заявку")
+Rel(site, credit_service, "Создаёт заявку")
+Rel(credit_service, abc, "Походы по паттернам Circuit Breaker и Anti Corruption Layer")
+BiRel(credit_service, credit_conveyor, "Передача заявок и получение статусов")
+Rel(back_office_manager, credit_conveyor, "Обрабатывает заявки")
+Rel(credit_service, sms_gateway, "Отправляет СМС клиенту")
+Rel(credit_conveyor, scoring, "Оценка кредитоспособности заявки")
+Rel(scoring, abc, "Получение внутренних кредитных данных клиента")
+Rel(scoring, bureau_credit_story, "Получение внешних кредитных данных клиента")
+
+
+@enduml
